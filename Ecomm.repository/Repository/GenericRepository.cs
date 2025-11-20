@@ -54,9 +54,19 @@ namespace Ecomm.repository.Repository
             return await ApplySpecification(spec).FirstOrDefaultAsync();
         }
 
-        public void Updaet(T entity)
+        public void Update(T entity)
         {
             context.Set<T>().Update(entity);
+        }
+
+        public async Task AddRangeAsync(List<T> entities)
+        {
+           await context.Set<T>().AddRangeAsync(entities);
+        }
+
+        public  void DeleteRangeAsync(List<T> entities)
+        {
+             context.Set<T>().RemoveRange(entities);
         }
     }
 }

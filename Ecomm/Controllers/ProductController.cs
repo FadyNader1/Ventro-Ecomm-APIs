@@ -1,0 +1,136 @@
+﻿using AutoMapper;
+using Ecomm.core.Entities;
+using Ecomm.DTOs.ProductDTOs;
+using Ecomm.Helper;
+using Ecomm.Responses;
+using Ecomm.service.InterfaceServices;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Ecomm.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProductController : BaseController
+    {
+        private readonly IProductServices productServices;
+        private readonly IMapper mapper;
+        private readonly ImageSetting imageSetting;
+
+        public ProductController(IProductServices productServices, IMapper mapper, ImageSetting imageSetting)
+        {
+            this.productServices = productServices;
+            this.mapper = mapper;
+            this.imageSetting = imageSetting;
+        }
+
+        [HttpGet("getallproducts")]
+        public async Task<ActionResult<ApiResponse<IReadOnlyList<ProductDto>>>> GetAllProducts()
+        {
+            var products = await productServices.GetAllProductsAsync();
+            var productsDto = mapper.Map<IReadOnlyList<ProductDto>>(products);
+            var response = new ApiResponse<IReadOnlyList<ProductDto>>()
+            {
+                Success = true,
+                Message = "All products",
+                Data = productsDto
+            };
+
+            return Ok(response);
+
+        }
+
+        [HttpPost("addproduct")]
+        public async Task<ActionResult<ApiResponse<ProductDto>>> AddProduct(AddProductDto addProductDto)
+        {
+            var productmap = mapper.Map<Product>(addProductDto);
+            var images = ImageSetting.saveImage(addProductDto.Photos, addProductDto.Name);
+
+
+            var product = await productServices.AddProductAsync(productmap, images);
+            var productDto = mapper.Map<ProductDto>(product);
+
+
+            var response = new ApiResponse<ProductDto>()
+            {
+                Success = true,
+                Message = "Product added successfully",
+                Data = productDto
+            };
+            return Ok(response);
+        }
+
+        [HttpGet("getproductbyid/{id}")]
+        public async Task<ActionResult<ApiResponse<ProductDto>>> GetProductById(int id)
+        {
+            var product = await productServices.GetProductByIdAsync(id);
+            var productDto = mapper.Map<ProductDto>(product);
+            var response = new ApiResponse<ProductDto>()
+            {
+                Success = true,
+                Message = "Product fetched successfully",
+                Data = productDto
+            };
+            return Ok(response);
+        }
+        [HttpDelete("deleteproduct/{id}")]
+        public async Task<ActionResult<ApiResponse<ProductDto>>> DeleteProduct(int id)
+        {
+            var product = await productServices.DeleteProductAsync(id);
+            if (product != null)
+            {
+                foreach (var photo in product.Photos)
+                {
+                    imageSetting.DeleteImage(photo.ImageName);
+                }
+            }
+
+            var productdto = mapper.Map<ProductDto>(product);
+            var response = new ApiResponse<ProductDto>()
+            {
+                Success = true,
+                Message = "Product deleted successfully",
+                Data = productdto
+            };
+            return Ok(response);
+        }
+
+        [HttpPut("updateproduct")]
+        public async Task<ActionResult<ApiResponse<ProductDto>>> UpdateProduct(UpdateProdcutDto updateProdcutDto)
+        {
+            //check if product exists
+            var getproduct = await productServices.GetProductByIdAsync(updateProdcutDto.Id);
+            if (getproduct == null)
+                return NotFound(new ApiResponse<ProductDto>()
+                {
+                    Success = false,
+                    Message = "Product not found , please check the id",
+                    Data = null
+                });
+
+            //delete old images from folder
+            if (getproduct.Photos.Count > 0)
+                foreach (var photo in getproduct.Photos)
+                    imageSetting.DeleteImage(photo.ImageName);
+   
+            //update product
+            var product = mapper.Map(updateProdcutDto, getproduct);
+            //save new images
+            var images = ImageSetting.saveImage(updateProdcutDto.Photos, updateProdcutDto.Name);
+            //send to  service to update
+            var updateproduct = await productServices.UpdateProductAsync(product, images);
+            //map to dto
+            var productDto = mapper.Map<ProductDto>(updateproduct);
+            //return response
+            var response = new ApiResponse<ProductDto>()
+            {
+                Success = true,
+                Message = "Product updated successfully",
+                Data = productDto
+            };
+            return Ok(response);
+
+        }
+    }
+}

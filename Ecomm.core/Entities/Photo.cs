@@ -9,9 +9,8 @@ namespace Ecomm.core.Entities
 {
     public class Photo:BaseEntity
     {
-        public string ImageName { get; set; }
-        [ForeignKey("Product")]
+        public string ImageName { get; set; } = default!;
         public int ProductId { get; set; }
-        public virtual Product Product { get; set; }
+        //public virtual Product Product { get; set; } = default!;
     }
 }

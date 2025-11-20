@@ -2,6 +2,8 @@
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace Ecomm.repository.Migrations
 {
     /// <inheritdoc />
@@ -65,6 +67,16 @@ namespace Ecomm.repository.Migrations
                         principalTable: "products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "categories",
+                columns: new[] { "Id", "Description", "Name" },
+                values: new object[,]
+                {
+                    { 1, " Electronics", "Electronics" },
+                    { 2, "Clothing", "Clothing" },
+                    { 3, " choose", "choose" }
                 });
 
             migrationBuilder.CreateIndex(

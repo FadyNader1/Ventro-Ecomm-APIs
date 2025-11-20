@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ecomm.repository.Migrations
 {
     [DbContext(typeof(DBContext))]
-    [Migration("20251114143847_SetCategoryData")]
-    partial class SetCategoryData
+    [Migration("20251115195226_InitMigration")]
+    partial class InitMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -127,7 +127,7 @@ namespace Ecomm.repository.Migrations
             modelBuilder.Entity("Ecomm.core.Entities.Photo", b =>
                 {
                     b.HasOne("Ecomm.core.Entities.Product", "Product")
-                        .WithMany()
+                        .WithMany("Photos")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -144,6 +144,11 @@ namespace Ecomm.repository.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Ecomm.core.Entities.Product", b =>
+                {
+                    b.Navigation("Photos");
                 });
 #pragma warning restore 612, 618
         }

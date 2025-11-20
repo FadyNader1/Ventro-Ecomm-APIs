@@ -14,8 +14,10 @@ namespace Ecomm.core.Interfaces
         Task<T> GetByIdAsync(int id);
         Task<T> GetBySpecAsync(ISpecification<T> spec);
         Task AddAsync(T entity);
-        void Updaet(T entity);
+        void Update(T entity);
         void Delete(T entity);
+        Task AddRangeAsync(List<T> entities);
+        void DeleteRangeAsync(List<T> entities);
 
 
     }

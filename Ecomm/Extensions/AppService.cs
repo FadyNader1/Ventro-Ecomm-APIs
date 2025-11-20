@@ -1,7 +1,13 @@
-﻿using Ecomm.Errors;
+﻿using Ecomm.core.Interfaces;
+using Ecomm.Errors;
+using Ecomm.Helper;
 using Ecomm.repository.Context;
+using Ecomm.repository.Repository;
+using Ecomm.service.ImplementServices;
+using Ecomm.service.InterfaceServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using System.Threading.Tasks;
 
 namespace Ecomm.Extensions
@@ -45,6 +51,28 @@ namespace Ecomm.Extensions
                     policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
                 });
             });
+            //dependencyInjection ICtegoryRepo
+            Services.AddScoped(typeof(ICategoryRepo), typeof(CategoryRepo));
+            //dependencyInjection IUnitOfWork
+            Services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
+            //dependencyInjection ICategoryService
+            Services.AddScoped(typeof(ICategoryServices), typeof(CategoryServices));
+            //automapper
+            Services.AddAutoMapper(typeof(MappingProfile));
+            //dependencyInjection IProductRepo
+            Services.AddScoped(typeof(IProductRepo), typeof(ProductRepo));
+            //dependencyInjection IProductService
+            Services.AddScoped(typeof(IProductServices), typeof(ProductServices));
+            //file provider
+            Services.AddSingleton<IFileProvider>(
+                 new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
+            //dependencyInjection IImagesetting
+            Services.AddScoped(typeof(ImageSetting), typeof(ImageSetting));
+
+
+
+
+
 
             return Services;
         }
