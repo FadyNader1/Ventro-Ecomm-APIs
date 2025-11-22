@@ -19,6 +19,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerService();
 }
 
+app.UseMiddleware<SecurityMiddleware>();
+app.UseRateLimiter();
 app.UseMiddleware<MiddlewareHandleError>();
 app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
@@ -26,6 +28,6 @@ app.UseCors("CorsPolicy");
 app.UseAuthorization();
 app.UseStaticFiles();
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting("fixed");
 
 app.Run();

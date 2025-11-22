@@ -6,6 +6,7 @@ using Ecomm.repository.Repository;
 using Ecomm.service.ImplementServices;
 using Ecomm.service.InterfaceServices;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using System.Threading.Tasks;
@@ -49,6 +50,17 @@ namespace Ecomm.Extensions
                 options.AddPolicy("CorsPolicy", policy =>
                 {
                     policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+                });
+            });
+            //Add ratelimiting
+            Services.AddRateLimiter(options =>
+            {
+                options.AddFixedWindowLimiter("fixed", opt =>
+                {
+                    opt.Window = TimeSpan.FromMinutes(1);
+                    opt.PermitLimit = 5;
+                    opt.QueueLimit = 1;
+                    opt.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
                 });
             });
             //dependencyInjection ICtegoryRepo
@@ -96,7 +108,7 @@ namespace Ecomm.Extensions
                 context.Response.StatusCode = 404;
                 await context.Response.WriteAsJsonAsync(new
                 {
-                    message = "Resource not found"
+                    message = "Resource not found, please check your endpoint and try again"
                 });
             });
 

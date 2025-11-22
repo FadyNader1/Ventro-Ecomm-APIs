@@ -50,11 +50,12 @@ namespace Ecomm.repository.Repository
             }
         }
 
-        public async Task<IReadOnlyList<Product>> GetAllProductsAsync()
+        public async Task<IReadOnlyList<Product>> GetAllProductsAsync(ProductParams productParams)
         {
             try
             {
-                var spec = new ProductSpecification();
+              
+                var spec = new ProductSpecification(productParams);
                 var products = await unitOfWork.Repository<Product>().GetAllSpecAsync(spec);
                 return products;
 

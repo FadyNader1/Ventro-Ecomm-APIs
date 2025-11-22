@@ -1,4 +1,5 @@
 ﻿using Ecomm.core.Entities;
+using Ecomm.core.Specification;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Ecomm.core.Interfaces
 {
     public interface IProductRepo
     {
-        Task<IReadOnlyList<Product>> GetAllProductsAsync();
+        Task<IReadOnlyList<Product>> GetAllProductsAsync(ProductParams productParams);
         Task<Product?> GetProductByIdAsync(int id);
         Task<bool> AddProductAsync(Product product);
         Task<bool> UpdateProductAsync(Product product);

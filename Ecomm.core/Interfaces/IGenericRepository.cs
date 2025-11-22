@@ -18,6 +18,8 @@ namespace Ecomm.core.Interfaces
         void Delete(T entity);
         Task AddRangeAsync(List<T> entities);
         void DeleteRangeAsync(List<T> entities);
+        Task<int>  GetCountSpecAsync(ISpecification<T> spec);
+
 
 
     }

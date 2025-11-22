@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
 using Ecomm.core.Entities;
+using Ecomm.core.Interfaces;
+using Ecomm.core.Specification;
 using Ecomm.DTOs.ProductDTOs;
 using Ecomm.Helper;
+using Ecomm.repository.Repository;
 using Ecomm.Responses;
 using Ecomm.service.InterfaceServices;
 using Microsoft.AspNetCore.Http;
@@ -17,22 +20,36 @@ namespace Ecomm.Controllers
         private readonly IProductServices productServices;
         private readonly IMapper mapper;
         private readonly ImageSetting imageSetting;
+        private readonly IUnitOfWork unitOfWork;
 
-        public ProductController(IProductServices productServices, IMapper mapper, ImageSetting imageSetting)
+        public ProductController(IProductServices productServices, IMapper mapper, ImageSetting imageSetting,IUnitOfWork unitOfWork)
         {
             this.productServices = productServices;
             this.mapper = mapper;
             this.imageSetting = imageSetting;
+            this.unitOfWork = unitOfWork;
         }
 
         [HttpGet("getallproducts")]
-        public async Task<ActionResult<ApiResponse<IReadOnlyList<ProductDto>>>> GetAllProducts()
+        public async Task<ActionResult<ApiResponse<IReadOnlyList<ProductDto>>>> GetAllProducts([FromQuery] ProductParams productParams)
         {
-            var products = await productServices.GetAllProductsAsync();
+            var countspec = new ProductCountSpecification(productParams);
+            var count = await unitOfWork.Repository<Product>().GetCountSpecAsync(countspec);
+
+            var products = await productServices.GetAllProductsAsync(productParams);
             var productsDto = mapper.Map<IReadOnlyList<ProductDto>>(products);
             var response = new ApiResponse<IReadOnlyList<ProductDto>>()
             {
                 Success = true,
+                Meta = new Meta()
+                {
+                    PageIndex = productParams.PageIndex,
+                    PageSize = productParams.PageSize,
+                    Count = count,
+                    TotalPages = (int)Math.Ceiling((double)count / productParams.PageSize),
+                    HasNextPage = productParams.PageIndex < ((int)Math.Ceiling((double)count / productParams.PageSize)),
+                    HasPreviousPage = productParams.PageIndex > 1,
+                },
                 Message = "All products",
                 Data = productsDto
             };

@@ -14,12 +14,19 @@ namespace Ecomm.core.Specification
         {
             var query = basepart;
 
-            if(specification.Criteria != null)
-            {
+            if (specification.Criteria != null)
                 query = query.Where(specification.Criteria);
-            }
 
-            query=specification.Includes.Aggregate(query, (current, include) => current.Include(include));
+            if (specification.OrderByAsyn!=null)
+                query=query.OrderBy(specification.OrderByAsyn);
+
+            if (specification.OrderByDes != null)
+                query = query.OrderByDescending(specification.OrderByDes);
+
+            if (specification.IsPagingEnabled)
+                query = query.Skip(specification.Skip).Take(specification.Take);
+
+            query =specification.Includes.Aggregate(query, (current, include) => current.Include(include));
             return query;
 
         }

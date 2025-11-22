@@ -11,6 +11,11 @@ namespace Ecomm.core.Specification
     {
         Expression<Func<T, bool>> Criteria { get; set; }
         List<Expression<Func<T, object>>> Includes { get; set; }
+        Expression<Func<T, object>> OrderByAsyn { get; set; }
+        Expression<Func<T, object>> OrderByDes { get; set; }
+        int Skip { get; set; }
+        int Take { get; set; }
+        bool IsPagingEnabled { get; set; }
 
     }
 }

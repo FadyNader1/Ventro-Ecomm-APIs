@@ -62,9 +62,9 @@ namespace Ecomm.service.ImplementServices
             throw new BadRequestException("Product not deleted, please try again");
         }
 
-        public async Task<IReadOnlyList<Product>> GetAllProductsAsync()
+        public async Task<IReadOnlyList<Product>> GetAllProductsAsync(ProductParams? proParams)
         {
-            var products = await productRepo.GetAllProductsAsync();
+            var products = await productRepo.GetAllProductsAsync(proParams);
             return products;
         }
 

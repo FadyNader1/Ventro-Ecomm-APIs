@@ -67,7 +67,14 @@ namespace Ecomm.Middleware
                         new ApiServerError(500, "Internal Server Error");
                     break;
             }
-            var json = JsonSerializer.Serialize(response);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                MaxDepth = 64,
+                PropertyNameCaseInsensitive = true
+            };
+            var json = JsonSerializer.Serialize(response,options);
+
             return context.Response.WriteAsync(json);
         }
     }

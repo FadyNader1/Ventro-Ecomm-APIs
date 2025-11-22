@@ -68,5 +68,10 @@ namespace Ecomm.repository.Repository
         {
              context.Set<T>().RemoveRange(entities);
         }
+
+        public async Task<int> GetCountSpecAsync(ISpecification<T> spec)
+        {
+            return await ApplySpecification(spec).CountAsync();
+        }
     }
 }
