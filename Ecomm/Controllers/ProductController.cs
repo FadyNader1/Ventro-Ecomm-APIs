@@ -59,7 +59,7 @@ namespace Ecomm.Controllers
         }
 
         [HttpPost("addproduct")]
-        public async Task<ActionResult<ApiResponse<ProductDto>>> AddProduct(AddProductDto addProductDto)
+        public async Task<ActionResult<ApiResponse<ProductDto>>> AddProduct([FromBody]AddProductDto addProductDto)
         {
             var productmap = mapper.Map<Product>(addProductDto);
             var images = ImageSetting.saveImage(addProductDto.Photos, addProductDto.Name);
@@ -148,6 +148,25 @@ namespace Ecomm.Controllers
             };
             return Ok(response);
 
+        }
+
+        [HttpGet("home")]
+        public async Task<ActionResult<HomeProductsDto>> GetHomePageData()
+        {
+            var latestSpec = new ProductLatestSpecification();
+            var featuredSpec = new ProductFeaturedSpecification();
+            var offersSpec = new ProductWithOffersSpecification();
+
+            var latest = await productServices.ListAsync(latestSpec);
+            var featured = await productServices.ListAsync(featuredSpec);
+            var offers = await productServices.ListAsync(offersSpec);
+
+            return Ok(new HomeProductsDto
+            {
+                LatestProducts = mapper.Map<IReadOnlyList<HomeProductToReturnDto>>(latest),
+                FeaturedProducts = mapper.Map<IReadOnlyList<HomeProductToReturnDto>>(featured),
+                OfferProducts = mapper.Map<IReadOnlyList<HomeProductToReturnDto>>(offers)
+            });
         }
     }
 }

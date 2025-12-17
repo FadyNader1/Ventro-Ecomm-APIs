@@ -77,6 +77,12 @@ namespace Ecomm.service.ImplementServices
             return product;
         }
 
+        public async Task<IReadOnlyList<Product>> ListAsync(ISpecification<Product> spec)
+        {
+            var products=await unitOfWork.Repository<Product>().GetAllSpecAsync(spec);
+            return products;
+        }
+
         public async Task<Product> UpdateProductAsync(Product product, List<string> photos)
         {
             //delete old images from database

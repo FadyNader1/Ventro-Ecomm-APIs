@@ -24,7 +24,7 @@ app.UseRateLimiter();
 app.UseMiddleware<MiddlewareHandleError>();
 app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
-
+app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
 

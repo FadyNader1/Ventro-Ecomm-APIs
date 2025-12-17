@@ -8,6 +8,8 @@ namespace Ecomm.DTOs.ProductDTOs
         public int Id { get; set; }
         public string Name { get; set; } = default!;
         public string Description { get; set; } = default!;
+        public string? KeySpecs { get; set; }
+
         public decimal OldPrice { get; set; }
         public decimal NewPrice { get; set; }
         public virtual Category Category { get; set; } 

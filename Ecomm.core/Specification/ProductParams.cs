@@ -12,8 +12,8 @@ namespace Ecomm.core.Specification
         public string? SearchByName { get; set; }
         public int? CategoryId { get; set; }
         public int PageIndex { get; set; } = 1;
-        private int MaxPageSize { get; set; } = 10;
-        private int pageSize { get; set; } = 5;
+        private int MaxPageSize { get; set; } = 20;
+        private int pageSize { get; set; } = 10;
         public int PageSize
         {
             get => pageSize;

@@ -15,5 +15,6 @@ namespace Ecomm.service.InterfaceServices
         Task<Product> AddProductAsync(Product product, List<string> photos);
         Task<Product> UpdateProductAsync(Product product, List<string> photos);
         Task<Product> DeleteProductAsync(int id);
+        Task<IReadOnlyList<Product>> ListAsync(ISpecification<Product> spec);
     }
 }

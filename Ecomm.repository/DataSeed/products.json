@@ -1,0 +1,18 @@
+[
+  {
+    "name": "UltraVision 55\" 4K Smart TV",
+    "description": "A sleek 55-inch 4K UHD Smart TV with vibrant colors and immersive sound, perfect for movies and gaming.",
+    "keySpecs": "4K UHD, HDR10, Smart OS, Wi-Fi, HDMI x3",
+    "oldPrice": 899,
+    "newPrice": 749,
+    "categoryId": 2,
+    "photos": [
+      "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1",
+      "https://images.unsplash.com/photo-1571415060716-baff5f717c37",
+      "https://images.unsplash.com/photo-1601944177325-f8867652837f",
+      "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04"
+    ]
+  }
+ 
+]
+

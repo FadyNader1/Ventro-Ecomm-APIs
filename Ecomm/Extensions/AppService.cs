@@ -1,23 +1,29 @@
-﻿using Ecomm.core.Interfaces;
+﻿using Ecomm.core.Entities.EmailSetting;
+using Ecomm.core.Entities.IdentityModle;
+using Ecomm.core.Interfaces;
 using Ecomm.Errors;
 using Ecomm.Helper;
 using Ecomm.repository.Context;
 using Ecomm.repository.Repository;
 using Ecomm.service.ImplementServices;
 using Ecomm.service.InterfaceServices;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using QuestPDF.Infrastructure;
+using StackExchange.Redis;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Ecomm.Extensions
 {
     public static class AppService
     {
-
-
-
         public static IServiceCollection AddAppService(this IServiceCollection Services, IConfiguration configuration)
         {
             // Add services to the container.
@@ -49,7 +55,7 @@ namespace Ecomm.Extensions
             {
                 options.AddPolicy("CorsPolicy", policy =>
                 {
-                    policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+                    policy.WithOrigins("http://localhost:4200", "https://localhost:4200").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
                 });
             });
             //Add ratelimiting
@@ -58,10 +64,16 @@ namespace Ecomm.Extensions
                 options.AddFixedWindowLimiter("fixed", opt =>
                 {
                     opt.Window = TimeSpan.FromMinutes(1);
-                    opt.PermitLimit = 5;
+                    opt.PermitLimit = 100;
                     opt.QueueLimit = 1;
                     opt.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
                 });
+            });
+            //Redispatching
+            Services.AddSingleton<IConnectionMultiplexer>(options =>
+            {
+                var connect = configuration.GetConnectionString("Redis");
+                return ConnectionMultiplexer.Connect(connect!);
             });
             //dependencyInjection ICtegoryRepo
             Services.AddScoped(typeof(ICategoryRepo), typeof(CategoryRepo));
@@ -80,11 +92,83 @@ namespace Ecomm.Extensions
                  new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
             //dependencyInjection IImagesetting
             Services.AddScoped(typeof(ImageSetting), typeof(ImageSetting));
+            //dependencyInjection ICustomerBasket
+            Services.AddScoped(typeof(ICustomerBasket), typeof(CustomerBasketService));
+            //DI IAth
+            Services.AddScoped(typeof(IAuth), typeof(Auth));
+            //HttpContextAccessores
+            Services.AddHttpContextAccessor();
+            //emailsetting
+            Services.Configure<EmailConfig>(configuration.GetSection("Email"));
+            //DI IEmailSetting
+            Services.AddScoped(typeof(IEmailSetting), typeof(EmailSetting));
+            //DI ITokenSetting
+            Services.AddScoped(typeof(ITokenSetting), typeof(TokenSetting));
+            //DI IRefreshTokenRepo
+            Services.AddScoped(typeof(IRefreshTokenRepo), typeof(RefreshTokenRepo));
+            //DI OrderRepo
+            Services.AddScoped(typeof(IOrderRepo), typeof(OrderRepo));
+            //DI OrderService
+            Services.AddScoped(typeof(IOrderService), typeof(OrderService));
+            //DI DeliveryMethodRepo
+            Services.AddScoped(typeof(IDeliveryMethodRepo), typeof(DeliveryMethodRepo));
+            //DI DeliveryMethodService
+            Services.AddScoped(typeof(IDeliveryMethodService), typeof(DeliveryMethodService));
+            //DI PaymentInent
+            Services.AddScoped(typeof(IPaymentService), typeof(PaymentService));
+            //DI WishListRepo
+            Services.AddScoped(typeof(IWishListRepo), typeof(WishListRepo));
+            //DI WishListService
+            Services.AddScoped(typeof(IWishListService), typeof(WishListService));
+            //QuestPDF license
+            QuestPDF.Settings.License = LicenseType.Community;
+            //DI IPdfGenerator
+            Services.AddScoped<IPdfGenerator, PdfGenerator>();
+
+            //Identity
+            Services.AddIdentity<AppUser, IdentityRole>(options =>
+            {
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireDigit = true;
+                options.Password.RequireUppercase = true;
 
 
+            }).AddEntityFrameworkStores<DBContext>()
+            .AddDefaultTokenProviders();
 
+            Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 
-
+            }).AddJwtBearer(options =>
+                {
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            context.Token = context.Request.Cookies["Token"];
+                            return Task.CompletedTask;
+                        }
+                    };
+                    options.TokenValidationParameters = new TokenValidationParameters()
+                    {
+                        ValidateAudience = false,
+                        ValidAudience = configuration["Jwt:Audience"],
+                        ValidateIssuer = false,
+                        ValidIssuer = configuration["Jwt:Issuer"],
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"]!))
+                    };
+                }).AddGoogle(options =>
+                {
+                    options.ClientId = configuration["Authentication:Google:ClientId"]!;
+                    options.ClientSecret = configuration["Authentication:Google:ClientSecret"]!;
+                }).AddFacebook(options =>
+                {
+                    options.AppId = configuration["Authentication:Facebook:AppId"]!;
+                    options.AppSecret = configuration["Authentication:Facebook:AppSecret"]!;
+                });
 
             return Services;
         }
@@ -120,13 +204,12 @@ namespace Ecomm.Extensions
             {
                 var context = services.GetRequiredService<DBContext>();
                 await context.Database.MigrateAsync();
+               // await ProductContextSeeding.SeedProducts(context);
             }
             catch (Exception ex)
             {
                 logger.CreateLogger<Program>().LogError($"Error occured during migration, {ex}");
             }
-
-
             return app;
         }
 
@@ -136,7 +219,8 @@ namespace Ecomm.Extensions
             app.UseSwaggerUI();
 
             return app;
-
         }
+
+
     }
 }
