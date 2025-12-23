@@ -1,1 +1,19 @@
-﻿
+﻿# الأسرار (أهم سطر للأمان)
+appsettings.Development.json
+
+# ملفات التشغيل (Binaries)
+[Bb]in/
+[Oo]bj/
+
+# ملفات المستخدم والإعدادات المحلية
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ملفات الأنجولار (في حالة وجودها بنفس المجلد)
+node_modules/
+dist/
+.angular/
