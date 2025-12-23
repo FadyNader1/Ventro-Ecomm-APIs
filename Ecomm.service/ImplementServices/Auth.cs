@@ -156,16 +156,16 @@ namespace Ecomm.service.ImplementServices
             httpContext.Response.Cookies.Append("Token", response.Token, new CookieOptions()
             {
                 HttpOnly = true,
-                Expires = DateTime.Now.AddMinutes(15),
-                SameSite = SameSiteMode.None,
-                Secure = true
+                Expires = DateTime.Now.AddDays(30),
+                SameSite = !httpContext.Request.IsHttps ? SameSiteMode.Lax : SameSiteMode.None,
+                Secure = !httpContext.Request.IsHttps ? false : true,
             });
             httpContext.Response.Cookies.Append("RefreshToken", response.RefreshToken, new CookieOptions()
             {
                 HttpOnly = true,
-                Expires = DateTime.Now.AddMinutes(15),
-                SameSite = SameSiteMode.None,
-                Secure = true
+                Expires = DateTime.Now.AddDays(30),
+                SameSite = !httpContext.Request.IsHttps ? SameSiteMode.Lax : SameSiteMode.None,
+                Secure = !httpContext.Request.IsHttps ? false : true,
             });
 
             return response;
@@ -212,73 +212,52 @@ namespace Ecomm.service.ImplementServices
             return "Change password success";
         }
 
-        public async Task<ApiResponseAuth> RefreshTokenAsync(string RefreshToken)
+        public async Task<ApiResponseAuth> RefreshTokenAsync(string refreshToken)
         {
-            if (string.IsNullOrEmpty(RefreshToken))
-                throw new BadRequestException("Refresh token is required");
+            // 1. التحقق من التوكن القديم
+            var storedRefreshToken = await refreshTokenRepo.FindByToken(refreshToken);
+            if (storedRefreshToken == null || storedRefreshToken.IsRevoked || storedRefreshToken.ExpiryDate <= DateTime.UtcNow)
+                throw new UnAuthorizeException("Invalid or expired refresh token");
 
-            // 1) Get refresh token from DB
-            var storedRefreshToken = await refreshTokenRepo.FindByToken(RefreshToken);
-            if (storedRefreshToken == null)
-                throw new UnAuthorizeException("Invalid refresh token");
-
-            if (storedRefreshToken.IsRevoked)
-                throw new UnAuthorizeException("Refresh token has been revoked");
-
-            if (storedRefreshToken.ExpiryDate <= DateTime.UtcNow)
-                throw new UnAuthorizeException("Refresh token has expired");
-
-            // 2) Get user
             var user = await userManager.FindByIdAsync(storedRefreshToken.UserId);
-            if (user == null)
-                throw new BadRequestException("User not found");
 
-            // 🔥 FIXED — Read JWT from Authorization header correctly
-            var authHeader = httpContext.Request.Headers["Authorization"].FirstOrDefault();
-            var accessToken = authHeader?.StartsWith("Bearer ") == true
-                ? authHeader.Substring("Bearer ".Length).Trim()
-                : null;
-
-            if (!string.IsNullOrEmpty(accessToken))
-            {
-                try
-                {
-                    var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
-
-                    // check valid token
-                    if (jwt.ValidTo > DateTime.UtcNow)
-                        throw new BadRequestException("Access token is still valid");
-                }
-                catch
-                {
-                    // ignore malformed token
-                }
-            }
-
-            // 4) Revoke old refresh token
+            // 2. إبطال التوكن القديم
             storedRefreshToken.IsRevoked = true;
-            storedRefreshToken.CreatedAt = DateTime.UtcNow;
 
-            unitOfWork.Repository<RefreshToken>().Update(storedRefreshToken);
-            await unitOfWork.CompleteAsync();
-
-            // 5) Generate new tokens
+            // 3. توليد توكنز جديدة
             var newAccessToken = await tokenSetting.CreateJwtTokenAsync(user, userManager);
             var newRefreshToken = await tokenSetting.CreateRefreshTokenAsync(user);
 
+            // 4. !!! هـام: حفظ الـ Refresh Token الجديد في الداتابيز !!!
+            var refTokenEntity = new RefreshToken()
+            {
+                UserId = user.Id,
+                Token = newRefreshToken,
+                ExpiryDate = DateTime.UtcNow.AddDays(30),
+                IsRevoked = false
+            };
+            await unitOfWork.Repository<RefreshToken>().AddAsync(refTokenEntity);
             await unitOfWork.CompleteAsync();
 
-            // 6) Return response
-            return new ApiResponseAuth
+            // 5. تحديث الكوكيز
+            httpContext.Response.Cookies.Append("Token", newAccessToken, new CookieOptions()
             {
-                Message = "Refresh token success",
-                DisplayName = $"{user.FirstName} {user.LastName}",
-                Email = user.Email!,
-                Token = newAccessToken,
-                RefreshToken = newRefreshToken
-            };
-        }
+                HttpOnly = true,
+                Expires = DateTime.Now.AddDays(30),
+                SameSite = !httpContext.Request.IsHttps ? SameSiteMode.Lax : SameSiteMode.None,
+                Secure = !httpContext.Request.IsHttps ? false : true,
+            });
+            httpContext.Response.Cookies.Append("RefreshToken", newRefreshToken, new CookieOptions()
+            {
+                HttpOnly = true,
+                Expires = DateTime.Now.AddDays(30),
+                SameSite = !httpContext.Request.IsHttps ? SameSiteMode.Lax : SameSiteMode.None,
+                Secure = !httpContext.Request.IsHttps ? false : true,
+            });
 
+
+            return new ApiResponseAuth { Token = newAccessToken, RefreshToken = newRefreshToken };
+        }
         public async Task<string> ForgotPasswordAsync(string email)
         {
             var user = await userManager.FindByEmailAsync(email);
@@ -514,17 +493,29 @@ namespace Ecomm.service.ImplementServices
             httpContext.Response.Cookies.Append("Token", response.Token, new CookieOptions()
             {
                 HttpOnly = true,
-                Expires = DateTime.Now.AddMinutes(15),
-                SameSite = SameSiteMode.None,
-                Secure = true
+                Expires = DateTime.Now.AddDays(30),
+                SameSite = !httpContext.Request.IsHttps ? SameSiteMode.Lax : SameSiteMode.None,
+                Secure = !httpContext.Request.IsHttps ? false : true,
             });
             httpContext.Response.Cookies.Append("RefreshToken", response.RefreshToken, new CookieOptions()
             {
                 HttpOnly = true,
-                Expires = DateTime.Now.AddMinutes(15),
-                SameSite = SameSiteMode.None,
-                Secure = true
+                Expires = DateTime.Now.AddDays(30),
+                SameSite = !httpContext.Request.IsHttps ? SameSiteMode.Lax : SameSiteMode.None,
+                Secure = !httpContext.Request.IsHttps ? false : true,
             });
+
+
+            var refToken = new RefreshToken()
+            {
+                UserId = user.Id,
+                Token = response.RefreshToken,
+                ExpiryDate = DateTime.UtcNow.AddDays(30),
+                IsRevoked = false
+
+            };
+
+            await unitOfWork.Repository<RefreshToken>().AddAsync(refToken);
 
             return response;
         }
@@ -596,16 +587,16 @@ namespace Ecomm.service.ImplementServices
             httpContext.Response.Cookies.Append("Token", response.Token, new CookieOptions()
             {
                 HttpOnly = true,
-                Expires = DateTime.Now.AddMinutes(15),
-                SameSite = SameSiteMode.None,
-                Secure = true
+                Expires = DateTime.Now.AddDays(30),
+                SameSite = !httpContext.Request.IsHttps ? SameSiteMode.Lax : SameSiteMode.None,
+                Secure = !httpContext.Request.IsHttps ? false : true,
             });
             httpContext.Response.Cookies.Append("RefreshToken", response.RefreshToken, new CookieOptions()
             {
                 HttpOnly = true,
-                Expires = DateTime.Now.AddMinutes(15),
-                SameSite = SameSiteMode.None,
-                Secure = true
+                Expires = DateTime.Now.AddDays(30),
+                SameSite = !httpContext.Request.IsHttps ? SameSiteMode.Lax : SameSiteMode.None,
+                Secure = !httpContext.Request.IsHttps ? false : true,
             });
             return response;
         }
@@ -621,8 +612,9 @@ namespace Ecomm.service.ImplementServices
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,           // false على localhost
-                SameSite = SameSiteMode.None ,
+                Secure = !httpContext.Request.IsHttps ? false : true,
+                Expires = DateTime.Now.AddDays(-1),
+                SameSite = !httpContext.Request.IsHttps ? SameSiteMode.Lax : SameSiteMode.None,
                 Path = "/"
             };
 

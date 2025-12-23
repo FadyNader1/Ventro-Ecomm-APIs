@@ -13,6 +13,11 @@ namespace Ecomm.DTOs.ProductDTOs
         public decimal OldPrice { get; set; }
         public decimal NewPrice { get; set; }
         public virtual Category Category { get; set; } 
-        public virtual List<string> Photos { get; set; } 
+        public virtual List<string> Photos { get; set; }
+        public int inventoryQuantity { get; set; }
+
+        public bool IsFeatured { get; set; }
+        public bool IsNewArrival { get; set; }
+        public int Rating { get; set; }
     }
 }

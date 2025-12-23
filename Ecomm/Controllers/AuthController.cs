@@ -52,23 +52,31 @@ namespace Ecomm.Controllers
             var result = await auth.ChangePasswordAsync(CurrentPassword, NewPassword);
             return Ok(new { message = result });
         }
+
         [HttpPost("refresh-token")]
         public async Task<ActionResult<ApiResponseAuth>> RefreshToken()
         {
-            // 1. هنا بنمسك الـ refresh token من الكوكيز يدوياً
             var refreshTokenFromCookie = Request.Cookies["RefreshToken"];
-
-            // 2. التحقق لو الكوكي مش موجودة أصلاً
             if (string.IsNullOrEmpty(refreshTokenFromCookie))
-            {
-                return Unauthorized(new { message = "Refresh token is missing from cookies" });
-            }
+                return Unauthorized();
 
-            // 3. بنبعت التوكن اللي مسكناه للدالة بتاعتك زي ما هي بدون أي تغيير في الـ Service
             var result = await auth.RefreshTokenAsync(refreshTokenFromCookie);
 
-            return Ok(result);
+            // 🔥 حدّث الكوكي بالتوكن الجديد
+            Response.Cookies.Append("RefreshToken", result.RefreshToken!, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = !HttpContext.Request.IsHttps ? false : true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(30)
+            });
+
+            return Ok(new
+            {
+                token = result
+            });
         }
+
 
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromQuery] string email)
@@ -90,7 +98,7 @@ namespace Ecomm.Controllers
             var result = await auth.ResendConfirmEmailAsync(email);
             return Ok(new { message = result });
         }
-        [Authorize]
+
         [HttpGet("get-current-user")]
         public async Task<ActionResult<ApiResponseAuth>> GetUser()
         {
@@ -109,7 +117,7 @@ namespace Ecomm.Controllers
         public async Task<ActionResult> GoogleResponse()
         {
             var result = await auth.GoogleResponseAsync();
-            return Redirect($"http://localhost:4200/google-success?token={result.Token}&refreshToken={result.RefreshToken}");
+            return Redirect($"https://ventro-epwz.vercel.app/google-success?token={result.Token}&refreshToken={result.RefreshToken}");
         }
 
         [HttpGet("signin-facebook")]
@@ -124,9 +132,8 @@ namespace Ecomm.Controllers
         public async Task<ActionResult> FacebookResponse()
         {
             var result = await auth.FacebookResponseAsync();
-            return Redirect($"http://localhost:4200/facebook-success?token={result.Token}&refreshToken={result.RefreshToken}");
+            return Redirect($"https://ventro-epwz.vercel.app/facebook-success?token={result.Token}&refreshToken={result.RefreshToken}");
         }
-        [Authorize]
         [HttpPost("logout")]
         public async Task<ActionResult<ApiResponseAuth>> Logout()
         {

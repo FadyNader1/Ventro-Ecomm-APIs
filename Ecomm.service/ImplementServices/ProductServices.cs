@@ -4,6 +4,7 @@ using Ecomm.core.Exceptions;
 using Ecomm.core.Interfaces;
 using Ecomm.core.Specification;
 using Ecomm.service.InterfaceServices;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,11 +18,13 @@ namespace Ecomm.service.ImplementServices
     {
         private readonly IProductRepo productRepo;
         private readonly IUnitOfWork unitOfWork;
+        private readonly IConfiguration configuration;
 
-        public ProductServices(IProductRepo productRepo, IUnitOfWork unitOfWork)
+        public ProductServices(IProductRepo productRepo, IUnitOfWork unitOfWork,IConfiguration configuration)
         {
             this.productRepo = productRepo;
             this.unitOfWork = unitOfWork;
+            this.configuration = configuration;
         }
         public async Task<Product> AddProductAsync(Product product, List<string> photos)
         {
@@ -80,6 +83,16 @@ namespace Ecomm.service.ImplementServices
         public async Task<IReadOnlyList<Product>> ListAsync(ISpecification<Product> spec)
         {
             var products=await unitOfWork.Repository<Product>().GetAllSpecAsync(spec);
+            foreach (var x in products)
+            {
+                var firstPhoto = x.Photos?.FirstOrDefault();
+
+                if (firstPhoto != null)
+                {
+                    // Using string interpolation to combine the base URL and the image name
+                    x.PictureUrl = $"{configuration["baseUrl"]}/{firstPhoto.ImageName}";
+                }
+            }
             return products;
         }
 

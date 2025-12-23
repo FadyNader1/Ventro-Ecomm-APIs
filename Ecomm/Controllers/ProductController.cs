@@ -161,6 +161,7 @@ namespace Ecomm.Controllers
             var featured = await productServices.ListAsync(featuredSpec);
             var offers = await productServices.ListAsync(offersSpec);
 
+
             return Ok(new HomeProductsDto
             {
                 LatestProducts = mapper.Map<IReadOnlyList<HomeProductToReturnDto>>(latest),

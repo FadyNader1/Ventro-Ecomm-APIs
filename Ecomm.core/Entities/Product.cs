@@ -19,6 +19,8 @@ namespace Ecomm.core.Entities
         public bool IsFeatured { get; set; } = false; 
         public bool IsNewArrival { get; set; } = true; 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string PictureUrl { get; set; } = default!;
+        public int Rating { get; set; } 
 
         [ForeignKey("Category")]
         public int CategoryId { get; set; }

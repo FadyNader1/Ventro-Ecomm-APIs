@@ -50,12 +50,19 @@ namespace Ecomm.Extensions
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
             });
 
-            //Add CORS policy
+            // أضف رابط الـ Vercel الخاص بك هنا
             Services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy", policy =>
                 {
-                    policy.WithOrigins("http://localhost:4200", "https://localhost:4200").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+                    policy.WithOrigins(
+                            "http://localhost:4200",
+                            "https://localhost:4200",
+                            "https://ventro-epwz.vercel.app" // الرابط الجديد من الصورة
+                          )
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
                 });
             });
             //Add ratelimiting

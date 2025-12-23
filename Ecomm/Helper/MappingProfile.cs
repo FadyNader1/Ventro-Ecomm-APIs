@@ -40,8 +40,8 @@ namespace Ecomm.Helper
 
 
             CreateMap<Product, HomeProductToReturnDto>()
-                    .ForMember(d => d.CategoryName, o => o.MapFrom(s => s.Category.Name))
-                    .ForMember(d => d.PictureUrl, o => o.MapFrom(s => s.Photos.FirstOrDefault().ImageName));
+                    .ForMember(d => d.CategoryName, o => o.MapFrom(s => s.Category.Name));
+                   
 
 
         }
