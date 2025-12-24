@@ -33,7 +33,7 @@ The project provides all essential functionalities for a modern online store: pr
 
 All endpoints return consistent responses using a custom `ApiResponse<T>` wrapper (with `success`, `message`, `data`, and optional `meta` for pagination).
 
-#### Product Controller (`/api/products`)
+#### Product Controller (`/api/product`)
 
 | Method | Endpoint                          | Description                                      | Auth Required |
 |--------|-----------------------------------|--------------------------------------------------|---------------|
@@ -78,7 +78,7 @@ All endpoints return consistent responses using a custom `ApiResponse<T>` wrappe
 |--------|-----------------------------------|--------------------------------------------------|---------------|
 | POST   | `/Create-payment-intent?basketId={id}` | Create Stripe Payment Intent                | No            |
 
-#### Delivery Method Controller (`/api/deliverymethods`)
+#### Delivery Method Controller (`/api/DeliveryMethod`)
 
 | Method | Endpoint                          | Description                                      | Auth Required |
 |--------|-----------------------------------|--------------------------------------------------|---------------|
@@ -88,7 +88,7 @@ All endpoints return consistent responses using a custom `ApiResponse<T>` wrappe
 | PUT    | `/update-delivery-method`         | Update delivery method                           | No (Admin?)   |
 | DELETE | `/delete-delivery-method?id={id}` | Delete delivery method                           | No (Admin?)   |
 
-#### Category Controller (`/api/categories`)
+#### Category Controller (`/api/category`)
 
 | Method | Endpoint                          | Description                                      | Auth Required |
 |--------|-----------------------------------|--------------------------------------------------|---------------|
@@ -98,7 +98,7 @@ All endpoints return consistent responses using a custom `ApiResponse<T>` wrappe
 | PUT    | `/update-category`                | Update category                                  | No (Admin?)   |
 | DELETE | `/delete-category/{id}`           | Delete category                                  | No (Admin?)   |
 
-#### Auth Controller (`/api/auth`)
+#### Auth Controller (`/api/Auth`)
 
 | Method | Endpoint                          | Description                                      | Auth Required |
 |--------|-----------------------------------|--------------------------------------------------|---------------|
