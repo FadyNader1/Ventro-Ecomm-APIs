@@ -44,7 +44,7 @@ All endpoints return consistent responses using a custom `ApiResponse<T>` wrappe
 | PUT    | `/updateproduct`                  | Update product (replaces images)                  | No (Admin?)   |
 | GET    | `/home`                           | Get home page data (Latest, Featured, Offers)     | No            |
 
-#### Wishlist Controller (`/api/wishlist`)
+#### Wishlist Controller (`/api/WishList`)
 
 | Method | Endpoint                          | Description                                      | Auth Required |
 |--------|-----------------------------------|--------------------------------------------------|---------------|
