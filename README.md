@@ -63,7 +63,7 @@ All endpoints return consistent responses using a custom `ApiResponse<T>` wrappe
 | GET    | `/GetBasket?basketId={id}`        | Get basket by ID                                 | No            |
 | DELETE | `/ClearBasket?basketId={id}`      | Clear entire basket                              | No            |
 
-#### Order Controller (`/api/orders`)
+#### Order Controller (`/api/Order`)
 
 | Method | Endpoint                          | Description                                      | Auth Required |
 |--------|-----------------------------------|--------------------------------------------------|---------------|
